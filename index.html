@@ -118,7 +118,7 @@
                 text = text.replace(/[A-Za-z0-9]/g, (s) => {
                     return String.fromCharCode(s.charCodeAt(0) + 65248);
                 });
-                text = text.replace('ー','｜');
+                text = text.replace(/ー/g,'｜');
                 ret.push(text)
             });
 
