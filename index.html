@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <style>
+        #content {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        input,
+        textarea {
+            display: block;
+            width: 95%;
+            margin: 5px auto;
+        }
+
+        input {
+            height: 25px;
+        }
+
+        textarea {
+            display: block;
+            height: 300px;
+        }
+
+        button {
+            display: block;
+            width: 90%;
+            height: 50px;
+            margin: 5px auto;
+        }
+
+        #caution{
+            color: #aa2222;
+            font-size: 15px;
+        }
+        p{
+            font-size: 15px;
+        }
+    </style>
+    <div id="content">
+        <h1>3行短冊<h1>
+        <input type="text" id="line1">
+        <input type="text" id="line2">
+        <input type="text" id="line3">
+        <button onclick="generate()">生成</button>
+        <textarea id="test"></textarea>
+        <p style="display: none;" id="caution">多分Twitterの最大文字数を超えています</p>
+        <button onclick="tweet()">ツイート</button>
+        <p>&copy; 村田 Kazumi Sprout 2020</p>
+        <p><a href="https://twitter.com/kazumispr">村田のTwitter</a></p>
+    </div>
+    <script>
+        var watchinput = null;
+        var watchinputprev = null;
+        generate();
+        document.querySelectorAll("input").forEach((element) => {
+            element.addEventListener("focus", () => {
+                watchinputprev = getinputvalue();
+                window.clearInterval(watchinput);
+                watchinput = window.setInterval(() => {
+
+                    var nowinput = getinputvalue()
+
+                    if( watchinputprev != nowinput){
+                        generate();
+                    }
+                    watchinputprev = nowinput;
+                }, 100);
+            },false);
+            element.addEventListener("blur",()=>{
+                window.clearInterval(watchinput);
+            },false);
+        });
+
+        function getinputvalue(){
+            return [
+                    document.getElementById("line1").value,
+                    document.getElementById("line2").value,
+                    document.getElementById("line3").value
+                ].toString();
+        }
+
+        function generate() {
+            var content = [
+                document.getElementById("line1").value,
+                document.getElementById("line2").value,
+                document.getElementById("line3").value
+            ]
+            if (lenguard(content)) {
+                document.getElementById("test").value = avrzaku(valitation(content))
+                console.log(document.getElementById("test").value.length)
+                if(document.getElementById("test").value.length>151){
+                    document.getElementById("caution").style.display="block";
+                }else{
+                    document.getElementById("caution").style.display="none";
+                }
+            }
+        }
+
+        function lenguard(texts) {
+            var islenguardpassed = true/*
+            texts.forEach((text) => {
+                if (islenguardpassed && text.length < 3) {
+                    alert("一行毎に3文字以上でお願いします。");
+                    islenguardpassed = false;
+                }
+            })*/
+            return islenguardpassed;
+        }
+
+        function valitation(texts) {
+            var ret = [];
+            texts.forEach(text => {
+                text = text.replace(/[A-Za-z0-9]/g, (s) => {
+                    return String.fromCharCode(s.charCodeAt(0) + 65248);
+                });
+                text = text.replace('ー','｜');
+                ret.push(text)
+            });
+
+            return ret
+        }
+
+        function avrzaku(lines) {
+            var joinpoint = [];
+            var cur = [];
+            var len = [];
+            for (let i = 0; i < lines.length; i++) {
+                var element = lines[i];
+                len.push(element.length);
+                cur.push(0);
+            }
+
+            joinpoint[0] = len[0] < len[1] ? Math.floor(len[0] / 2) : len[0] - Math.ceil(len[1] / 2);
+            joinpoint[1] = len[1] < len[2] ? Math.floor(len[1] / 2) : len[1] - Math.ceil(len[2] / 2);
+
+
+            var totalresult = "┏━┷━┓\n";
+            while (true) {
+                var result = "";
+                if (cur[1] >= joinpoint[1]) {
+                    if (!(len[2] - cur[2] <= 0)) {
+                        result += lines[2][cur[2]]
+                        cur[2]++;
+                    } else {
+                        result += '　';
+                    }
+                } else {
+                    result += '　';
+                }
+                if (cur[0] >= joinpoint[0]) {
+                    if (!(len[1] - cur[1] <= 0)) {
+                        result += lines[1][cur[1]]
+                        cur[1]++;
+                    } else {
+                        result += '　'
+                    }
+                } else {
+                    result += '　';
+                }
+                if (!(len[0] - cur[0] <= 0)) {
+                    result += lines[0][cur[0]];
+                    cur[0]++;
+                } else {
+                    result += '　';
+                }
+                totalresult += '┃' + result + "┃\n"
+                console.log(totalresult)
+                if (len[1] - cur[1] == 0 && len[2] - cur[2] == 0 && len[0] - cur[0] == 0) {
+                    totalresult += "┗━━━┛\n7g7n.kzme.net";
+                    break;
+                }
+            }
+            return totalresult;
+        }
+
+        function tweet(){
+            window.open("https://twitter.com/intent/tweet?text="+encodeURI(document.getElementById("test").value))
+        }
+    </script>
+</body>
+
+</html>
